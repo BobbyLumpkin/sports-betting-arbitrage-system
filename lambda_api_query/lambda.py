@@ -1,5 +1,8 @@
 import boto3
-from datetime import datetime
+from datetime import (
+    datetime,
+    timedelta
+)
 import json
 import logging
 import requests
@@ -49,8 +52,8 @@ def lambda_handler(event, context):
                 params=payload
             )
             response_list += json.loads(response.content)
-        current_datetime = datetime.now()
-        current_datetime_str = current_datetime.strftime("%Y%m%d")
+        current_datetime = datetime.now() - timedelta(hours=5)
+        current_datetime_str = current_datetime.strftime("%Y%m%d_%H_%M_%S")
         s3_key = event.get("s3_prefix") + f"/response_{current_datetime_str}.json"
         bucket = event.get("s3_bucket")
 
