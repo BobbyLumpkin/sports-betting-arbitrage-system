@@ -1,0 +1,11 @@
+{
+  "sports_list": [
+    "basketball_nba"
+  ],
+  "regions_list": [
+    "us",
+    "us2"
+  ],
+  "s3_bucket": "sports-betting-arbitrage-system",
+  "s3_prefix": "api-responses"
+}
