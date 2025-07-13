@@ -48,11 +48,13 @@ class ArbitrageOpportunity():
 
     bet1: dict
     bet2: dict
+    payout_multiplier: float
 
     def to_dict(self) -> dict:
         return {
             "bet1": self.bet1,
-            "bet2": self.bet2
+            "bet2": self.bet2,
+            "payout_multiplier": self.payout_multiplier
         }
 
 
@@ -69,6 +71,20 @@ def is_arbitrage_opportunity(
     return False
 
 
+def calculate_stake_proportions(
+        decimal_odds_list: list[float]
+    ) -> list[float]:
+    implied_probabilities_list = [
+        1 / odds
+        for odds in decimal_odds_list
+    ]
+    total_implied_probabilities = sum(implied_probabilities_list)
+    return [
+        (1 / odds) / total_implied_probabilities
+        for odds in decimal_odds_list
+    ]
+
+
 def search_for_arbitrage_opportunity_between_two_books(
         game_outcome_line1: GameOutcomeLine,
         game_outcome_line2: GameOutcomeLine
@@ -76,43 +92,53 @@ def search_for_arbitrage_opportunity_between_two_books(
     """
     Searches for any arbitrage opportunity on a game between two books.
     """
+    decimal_odds_list = [
+        game_outcome_line1.home_team_win_price,
+        game_outcome_line2.away_team_win_price
+    ]
     is_arbitrage_opportunity_combination1 = is_arbitrage_opportunity(
-        decimal_odds_list=[
-            game_outcome_line1.home_team_win_price,
-            game_outcome_line2.away_team_win_price
-        ]
+        decimal_odds_list=decimal_odds_list
     )
     if is_arbitrage_opportunity_combination1:
+        stake_proportions_list = calculate_stake_proportions(decimal_odds_list=decimal_odds_list)
         return ArbitrageOpportunity(
             bet1={
                 "book": game_outcome_line1.book,
                 "last_update": game_outcome_line1.last_update,
                 "name": game_outcome_line1.home_team,
-                "price": game_outcome_line1.home_team_win_price},
+                "price": game_outcome_line1.home_team_win_price,
+                "stake_proportion": stake_proportions_list[0]},
             bet2={
                 "book": game_outcome_line2.book,
                 "last_update": game_outcome_line2.last_update,
                 "name": game_outcome_line2.away_team,
-                "price": game_outcome_line2.away_team_win_price}
+                "price": game_outcome_line2.away_team_win_price,
+                "stake_proportion": stake_proportions_list[1]},
+            payout_multiplier=stake_proportions_list[0] * game_outcome_line1.home_team_win_price
         )
+    decimal_odds_list = [
+        game_outcome_line1.away_team_win_price,
+        game_outcome_line2.home_team_win_price
+    ]
     is_arbitrage_opportunity_combination2 = is_arbitrage_opportunity(
-        decimal_odds_list=[
-            game_outcome_line1.away_team_win_price,
-            game_outcome_line2.home_team_win_price
-        ]
+        decimal_odds_list=decimal_odds_list
     )
     if is_arbitrage_opportunity_combination2:
+        stake_proportions_list = calculate_stake_proportions(decimal_odds_list=decimal_odds_list)
         return ArbitrageOpportunity(
             bet1={
                 "book": game_outcome_line1.book,
                 "last_update": game_outcome_line1.last_update,
                 "name": game_outcome_line1.away_team,
-                "price": game_outcome_line1.away_team_win_price},
+                "price": game_outcome_line1.away_team_win_price,
+                "stake_proportion": stake_proportions_list[0]},
             bet2={
                 "book": game_outcome_line2.book,
                 "last_update": game_outcome_line2.last_update,
                 "name": game_outcome_line2.home_team,
-                "price": game_outcome_line2.home_team_win_price}
+                "price": game_outcome_line2.home_team_win_price,
+                "stake_proportion": stake_proportions_list[1]},
+            payout_multiplier=stake_proportions_list[0] * game_outcome_line1.away_team_win_price
         )
     return
 
