@@ -1,5 +1,26 @@
+import boto3
 from dataclasses import dataclass, field
+from datetime import datetime
 from itertools import combinations
+import json
+import logging
+import sys
+
+
+ARBITRAGE_OPPORTUNITIES_DATETIME_TEMPLATE = "arbitrage-opportunities/opportunities_{datetime}"
+
+
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.INFO)
+_formatter = logging.Formatter(
+    "%(asctime)s:%(levelname)s:%(module)s: %(message)s"
+)
+_console_handler = logging.StreamHandler(sys.stdout)
+_console_handler.setFormatter(_formatter)
+_logger.addHandler(_console_handler)
+
+
+s3 = boto3.client("s3")
 
 
 @dataclass(frozen=True)
@@ -42,6 +63,31 @@ class GameOutcomeLine():
             away_team_win_price=away_team_outcome_dict["price"]
         )
 
+    def to_dict(self):
+        return {
+            "book": self.book,
+            "home_team": self.home_team,
+            "away_team": self.away_team,
+            "home_team_win_price": self.home_team_win_price,
+            "away_team_win_price": self.away_team_win_price
+        }
+
+    def save_to_s3(
+            self,
+            bucket: str,
+            s3_key: str,
+            client=None
+        ):
+        if client is None:
+            client = boto3.client("s3")
+        client.put_object(
+            Bucket=bucket,
+            Key=s3_key,
+            Body=json.dumps(self.to_dict()),
+            ContentType="application/json"
+        )
+        return
+
 
 @dataclass(frozen=True)
 class ArbitrageOpportunity():
@@ -56,6 +102,21 @@ class ArbitrageOpportunity():
             "bet2": self.bet2,
             "payout_multiplier": self.payout_multiplier
         }
+    def write_s3(
+            self,
+            bucket: str,
+            s3_key: str,
+            client=None
+        ):
+        if client is None:
+            client = boto3.client("s3")
+        client.put_object(
+            Bucket=bucket,
+            Key=s3_key,
+            Body=json.dumps(self.to_dict()),
+            ContentType="application/json"
+        )
+        return
 
 
 def is_arbitrage_opportunity(
@@ -200,6 +261,20 @@ def lambda_handler(event, context):
                     arbitrage_opportunity.to_dict()
                     for arbitrage_opportunity in arbitrage_opportunities
                 ]
+        if arbitrage_opportunities_list:
+            current_datetime = datetime.now().strftime("%Y%m%d_%H:%M:%S")
+            key = ARBITRAGE_OPPORTUNITIES_DATETIME_TEMPLATE.format(datetime=current_datetime)
+            _logger.info(
+                "Writing found arbitrage opportunities to S3:\n"
+                f"    - Bucket: '{event.get("s3_bucket")}'\n"
+                f"    - Key: '{key}'"
+            )
+            s3.put_object(
+                Bucket=event.get("s3_bucket"),
+                Key=key,
+                Body=json.dumps(arbitrage_opportunities_list),
+                ContentType="application/json"
+            )
         return {
             'statusCode': 200,
             'body': {

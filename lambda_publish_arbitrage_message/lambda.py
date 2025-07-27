@@ -1,7 +1,11 @@
 import boto3
 from dataclasses import dataclass
+import json
+import re
 
 
+ARBITRAGE_OPPORTUNITIES_DATETIME_REGEX = r"arbitrage-opportunities/opportunities_(\d{8}_\d{2}:\d{2}:\d{2})"
+ARBITRAGE_OPPORTUNITIES_DATETIME_TEMPLATE = "arbitrage-opportunities/opportunities_{datetime}"
 ARBITRAGE_OPPORTUNITY_STR_TEMPLATE = """
 **Opportunity: {opportunity_name}**
 
@@ -43,10 +47,53 @@ class BetNamesAndStrs():
     bet_strs_list: list
 
 
+def load_latest_arbitrage_opportunities(
+        bucket: str,
+        s3_prefix: str,
+        client=None
+    ):
+    if client is None:
+        client = boto3.client("s3")
+    keys = []
+    paginator = client.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=bucket, Prefix=s3_prefix)
+    for page in pages:
+        if "Contents" in page:
+            for obj in page["Contents"]:
+                if obj["Key"] != f"{s3_prefix}/":
+                    keys.append(obj["Key"])
+    keys_datetimes = [
+        datetime.strptime(
+            re.findall(ARBITRAGE_OPPORTUNITIES_DATETIME_REGEX, key)[0],
+            "%Y%m%d_%H:%M:%S")
+        for key in keys
+    ]
+    if len(keys_datetimes) > 1:
+        latest_opportunities_prefix = ARBITRAGE_OPPORTUNITIES_DATETIME_TEMPLATE.format(
+            datetime=datetime.strftime(sorted(keys_datetimes, reverse=True)[1], "%Y%m%d_%H:%M:%S")
+        )
+        print(latest_opportunities_prefix)
+        response = client.get_object(
+            Bucket=bucket,
+            Key=latest_opportunities_prefix
+        )
+        return json.loads(
+            response["Body"].read().decode("utf-8")
+        )
+    return []
+
+
 def lambda_handler(event, context):
     try:
-        body = event.get("body")
-        arbitrage_opportunities = body.get("arbitrage_opportunities")
+        latest_opportunities = load_latest_arbitrage_opportunities(
+            bucket=event.get("s3_bucket"),
+            s3_prefix=event.get("s3_prefix")
+        )
+        arbitrage_opportunities = [
+            opportunity 
+            for opportunity in event.get("arbitrage_opportunities")
+            if opportunity not in latest_opportunities
+        ]
         if arbitrage_opportunities:
             arbitrage_opportunity_str_list = []
             for opportunity in arbitrage_opportunities:
@@ -92,6 +139,12 @@ def lambda_handler(event, context):
                     "message": "Successfully published arbitrage opportunities message to sns."
                 }
             }
+        return {
+            "statusCode": 200,
+            "body": {
+                "message": "No new arbitrage opportunities to publish."
+            }
+        }
     except Exception as e:
         return {
             "statusCode": 500,
