@@ -1,0 +1,41 @@
+{
+    "statusCode": 200,
+    "body": {
+        "arbitrage_opportunities": [
+            {
+                "bet1": {
+                    "book": "draftkings",
+                    "last_update": "2025-03-08T18:04:16Z",
+                    "name": "Brooklyn Nets",
+                    "price": 1.64,
+                    "stake_proportion": 0.6150234741784038
+                },
+                "bet2": {
+                    "book": "betonlineag",
+                    "last_update": "2025-03-08T18:04:16Z",
+                    "name": "Charlotte Hornets",
+                    "price": 2.62,
+                    "stake_proportion": 0.38497652582159625
+                },
+                "payout_multiplier": 1.0086384976525822
+            },
+            {
+                "bet1": {
+                    "book": "draftkings",
+                    "last_update": "2025-03-08T18:04:16Z",
+                    "name": "Brooklyn Nets",
+                    "price": 1.64,
+                    "stake_proportion": 0.6150234741784038
+                },
+                "bet2": {
+                    "book": "lowvig",
+                    "last_update": "2025-03-08T18:04:16Z",
+                    "name": "Charlotte Hornets",
+                    "price": 2.62,
+                    "stake_proportion": 0.38497652582159625
+                },
+                "payout_multiplier": 1.0086384976525822
+            }
+        ]
+    }
+}
