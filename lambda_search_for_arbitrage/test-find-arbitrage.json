@@ -1,4 +1,6 @@
 {
+    "s3_bucket": "sports-betting-arbitrage-system",
+    "s3_opportunities_prefix": "arbitrage-opportunities",
     "api_responses": [
         {
             "id": "33e852b036ab436285a82f337e32e959",
@@ -40,11 +42,11 @@
                             "outcomes": [
                                 {
                                     "name": "Brooklyn Nets",
-                                    "price": 1.74
+                                    "price": 1.64
                                 },
                                 {
                                     "name": "Charlotte Hornets",
-                                    "price": 2.24
+                                    "price": 2.34
                                 }
                             ]
                         }

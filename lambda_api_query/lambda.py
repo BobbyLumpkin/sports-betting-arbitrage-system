@@ -1,8 +1,5 @@
 import boto3
-from datetime import (
-    datetime,
-    timedelta
-)
+from datetime import datetime
 import json
 import logging
 import requests
@@ -52,9 +49,9 @@ def lambda_handler(event, context):
                 params=payload
             )
             response_list += json.loads(response.content)
-        current_datetime = datetime.now() - timedelta(hours=5)
-        current_datetime_str = current_datetime.strftime("%Y%m%d_%H_%M_%S")
-        s3_key = event.get("s3_prefix") + f"/response_{current_datetime_str}.json"
+        current_datetime = datetime.now()
+        current_datetime_str = current_datetime.strftime("%Y%m%d_%H:%M:%S")
+        s3_key = event.get("s3_api_response_prefix") + f"/response_{current_datetime_str}.json"
         bucket = event.get("s3_bucket")
 
         _logger.info(
@@ -71,14 +68,15 @@ def lambda_handler(event, context):
         return {
             "statusCode": 200,
             "body": {
-                "message": "API Request was made and saved successfully."
+                "message": "API Request was made and saved successfully.",
+                "api_responses": response_list
             }
         }
     except Exception as e:
-        _logger.error(str(e))
+        _logger.error(e)
         return {
             "statusCode": 500,
             "body": {
-                "message": f"API Request failed with the following error: .{str(e)}'."
+                "message": f"API Request failed with the following error: .{e}'."
             }
         }

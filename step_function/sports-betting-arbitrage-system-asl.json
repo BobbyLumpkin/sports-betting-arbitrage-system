@@ -24,7 +24,12 @@
           "JitterStrategy": "FULL"
         }
       ],
-      "Next": "lambda-search-for-arbitrage"
+      "Next": "lambda-search-for-arbitrage",
+      "Assign": {
+        "s3_bucket": "{% $states.input.s3_bucket %}",
+        "s3_api_response_prefix": "{% $states.input.s3_api_response_prefix %}",
+        "s3_opportunities_prefix": "{% $states.input.s3_opportunities_prefix %}"
+      }
     },
     "lambda-search-for-arbitrage": {
       "Type": "Task",
@@ -32,7 +37,39 @@
       "Output": "{% $states.result.Payload %}",
       "Arguments": {
         "FunctionName": "arn:aws:lambda:us-east-2:945893360759:function:sports_betting_arbitrage_search_for_arbitrage_opportunity:$LATEST",
-        "Payload": "{% $states.input %}"
+        "Payload": {
+          "s3_bucket": "{% $s3_bucket %}",
+          "s3_opportunities_prefix": "{% $s3_opportunities_prefix %}",
+          "api_responses": "{% $states.input.body.api_responses %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "lambda-publish-new-opportunities"
+    },
+    "lambda-publish-new-opportunities": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "arn:aws:lambda:us-east-2:945893360759:function:sports_betting_arbitrage_publish_opportunities:$LATEST",
+        "Payload": {
+          "s3_bucket": "{% $s3_bucket %}",
+          "s3_opportunities_prefix": "{% $s3_opportunities_prefix %}",
+          "arbitrage_opportunities": "{% $states.input.body.arbitrage_opportunities %}"
+        }
       },
       "Retry": [
         {

@@ -1,0 +1,12 @@
+{
+  "s3_bucket": "sports-betting-arbitrage-system",
+  "s3_api_response_prefix": "api-responses",
+  "s3_opportunities_prefix": "arbitrage-opportunities",
+  "sports_list": [
+    "baseball_mlb"
+  ],
+  "regions_list": [
+    "us",
+    "us2"
+  ]
+}

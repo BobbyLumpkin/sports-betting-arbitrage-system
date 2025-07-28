@@ -1,11 +1,12 @@
 import boto3
 from dataclasses import dataclass
+from datetime import datetime
 import json
 import re
 
 
-ARBITRAGE_OPPORTUNITIES_DATETIME_REGEX = r"arbitrage-opportunities/opportunities_(\d{8}_\d{2}:\d{2}:\d{2})"
-ARBITRAGE_OPPORTUNITIES_DATETIME_TEMPLATE = "arbitrage-opportunities/opportunities_{datetime}"
+ARBITRAGE_OPPORTUNITIES_DATETIME_REGEX_TEMPLATE = r"{s3_opportunities_prefix}/opportunities_(\d{{8}}_\d{{2}}:\d{{2}}:\d{{2}})"
+ARBITRAGE_OPPORTUNITIES_DATETIME_TEMPLATE = "{s3_opportunities_prefix}/opportunities_{datetime}"
 ARBITRAGE_OPPORTUNITY_STR_TEMPLATE = """
 **Opportunity: {opportunity_name}**
 
@@ -50,6 +51,8 @@ class BetNamesAndStrs():
 def load_latest_arbitrage_opportunities(
         bucket: str,
         s3_prefix: str,
+        arbitrage_opportunities_datetime_regex: str,
+        arbitrage_opportunities_datetime_template: str = ARBITRAGE_OPPORTUNITIES_DATETIME_TEMPLATE,
         client=None
     ):
     if client is None:
@@ -64,12 +67,13 @@ def load_latest_arbitrage_opportunities(
                     keys.append(obj["Key"])
     keys_datetimes = [
         datetime.strptime(
-            re.findall(ARBITRAGE_OPPORTUNITIES_DATETIME_REGEX, key)[0],
+            re.findall(arbitrage_opportunities_datetime_regex, key)[0],
             "%Y%m%d_%H:%M:%S")
         for key in keys
     ]
     if len(keys_datetimes) > 1:
-        latest_opportunities_prefix = ARBITRAGE_OPPORTUNITIES_DATETIME_TEMPLATE.format(
+        latest_opportunities_prefix = arbitrage_opportunities_datetime_template.format(
+            s3_opportunities_prefix=s3_prefix,
             datetime=datetime.strftime(sorted(keys_datetimes, reverse=True)[1], "%Y%m%d_%H:%M:%S")
         )
         print(latest_opportunities_prefix)
@@ -85,9 +89,13 @@ def load_latest_arbitrage_opportunities(
 
 def lambda_handler(event, context):
     try:
+        arbitrage_opportunities_datetime_regex = ARBITRAGE_OPPORTUNITIES_DATETIME_REGEX_TEMPLATE.format(
+            s3_opportunities_prefix=event.get("s3_opportunities_prefix")
+        )
         latest_opportunities = load_latest_arbitrage_opportunities(
             bucket=event.get("s3_bucket"),
-            s3_prefix=event.get("s3_prefix")
+            s3_prefix=event.get("s3_opportunities_prefix"),
+            arbitrage_opportunities_datetime_regex=arbitrage_opportunities_datetime_regex
         )
         arbitrage_opportunities = [
             opportunity 

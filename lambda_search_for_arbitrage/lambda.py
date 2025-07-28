@@ -1,5 +1,5 @@
 import boto3
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from itertools import combinations
 import json
@@ -7,7 +7,7 @@ import logging
 import sys
 
 
-ARBITRAGE_OPPORTUNITIES_DATETIME_TEMPLATE = "arbitrage-opportunities/opportunities_{datetime}"
+ARBITRAGE_OPPORTUNITIES_DATETIME_TEMPLATE = "{s3_opportunities_prefix}/opportunities_{datetime}"
 
 
 _logger = logging.getLogger(__name__)
@@ -72,22 +72,6 @@ class GameOutcomeLine():
             "away_team_win_price": self.away_team_win_price
         }
 
-    def save_to_s3(
-            self,
-            bucket: str,
-            s3_key: str,
-            client=None
-        ):
-        if client is None:
-            client = boto3.client("s3")
-        client.put_object(
-            Bucket=bucket,
-            Key=s3_key,
-            Body=json.dumps(self.to_dict()),
-            ContentType="application/json"
-        )
-        return
-
 
 @dataclass(frozen=True)
 class ArbitrageOpportunity():
@@ -102,21 +86,6 @@ class ArbitrageOpportunity():
             "bet2": self.bet2,
             "payout_multiplier": self.payout_multiplier
         }
-    def write_s3(
-            self,
-            bucket: str,
-            s3_key: str,
-            client=None
-        ):
-        if client is None:
-            client = boto3.client("s3")
-        client.put_object(
-            Bucket=bucket,
-            Key=s3_key,
-            Body=json.dumps(self.to_dict()),
-            ContentType="application/json"
-        )
-        return
 
 
 def is_arbitrage_opportunity(
@@ -263,11 +232,14 @@ def lambda_handler(event, context):
                 ]
         if arbitrage_opportunities_list:
             current_datetime = datetime.now().strftime("%Y%m%d_%H:%M:%S")
-            key = ARBITRAGE_OPPORTUNITIES_DATETIME_TEMPLATE.format(datetime=current_datetime)
+            key = ARBITRAGE_OPPORTUNITIES_DATETIME_TEMPLATE.format(
+                s3_opportunities_prefix=event.get("s3_opportunities_prefix"),
+                datetime=current_datetime
+            )
             _logger.info(
                 "Writing found arbitrage opportunities to S3:\n"
-                f"    - Bucket: '{event.get("s3_bucket")}'\n"
-                f"    - Key: '{key}'"
+                f"    - Bucket: \"{event.get('s3_bucket')}\"\n"
+                f"    - Key: \"{key}\""
             )
             s3.put_object(
                 Bucket=event.get("s3_bucket"),
