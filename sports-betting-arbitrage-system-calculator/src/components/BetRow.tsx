@@ -53,7 +53,7 @@ const BetRow: React.FC<BetRowProps> = ({ index, bet, onChange, onRemove, canRemo
           <input
             type="text"
             className={darkMode ? "form-control bg-dark text-light border-secondary placeholder-white-50" : "form-control"}
-            placeholder="e.g., Home, Away, Draw"
+            placeholder="e.g., Home, Away, Team A"
             value={bet.label}
             onChange={(e) => onChange({ ...bet, label: e.target.value })}
           />

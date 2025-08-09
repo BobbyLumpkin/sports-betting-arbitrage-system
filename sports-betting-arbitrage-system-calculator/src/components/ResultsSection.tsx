@@ -41,13 +41,13 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
           <div className="col-md-6">
             <div className={darkMode ? "d-flex justify-content-between align-items-center bg-secondary rounded p-2 mb-2" : "d-flex justify-content-between align-items-center bg-light rounded p-2 mb-2"}>
               <span>Payout multiplier</span>
-              <strong>{parsed.payoutMultiplier ? parsed.payoutMultiplier.toFixed(4) : "—"}</strong>
+              <strong>{parsed.exists && parsed.payoutMultiplier ? parsed.payoutMultiplier.toFixed(4) : "NA"}</strong>
             </div>
           </div>
           <div className="col-md-6">
             <div className={darkMode ? "d-flex justify-content-between align-items-center bg-secondary rounded p-2 mb-2" : "d-flex justify-content-between align-items-center bg-light rounded p-2 mb-2"}>
               <span>Guaranteed Payout</span>
-              <strong>{parsed.payoutMultiplier ? currency(totalStake * parsed.payoutMultiplier) : "—"}</strong>
+              <strong>{parsed.exists && parsed.payoutMultiplier ? currency(totalStake * parsed.payoutMultiplier) : "NA"}</strong>
             </div>
           </div>
         </div>
@@ -70,8 +70,8 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
                   <td>{b.odds || "—"} <span className="text-muted small">({b.format})</span></td>
                   <td>{b.decimal ? b.decimal.toFixed(4) : "—"}</td>
                   <td>{b.decimal ? (1 / b.decimal).toFixed(4) : "—"}</td>
-                  <td>{parsed.proportions?.[i] !== undefined ? parsed.proportions[i].toFixed(4) : "—"}</td>
-                  {recommendedStakes && <td>{currency(recommendedStakes[i])}</td>}
+                  <td>{parsed.exists && parsed.proportions?.[i] !== undefined ? parsed.proportions[i].toFixed(4) : "NA"}</td>
+                  {recommendedStakes && <td>{parsed.exists ? currency(recommendedStakes[i]) : "NA"}</td>}
                 </tr>
               ))}
             </tbody>
@@ -79,7 +79,7 @@ const ResultsSection: React.FC<ResultsSectionProps> = ({
         </div>
         {!parsed.exists && (
           <div className={darkMode ? "alert alert-info mt-3 bg-secondary text-light border-0" : "alert alert-info mt-3"} role="alert">
-            Tip: To have an arbitrage, the sum of implied probabilities must be less than 1. Try mixing books and odds formats.
+            Tip: To have an arbitrage, the sum of implied probabilities must be less than 1. Try mixing books across the same bets.
           </div>
         )}
         {parsed.exists && (
