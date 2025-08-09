@@ -29,7 +29,8 @@ const BetRow: React.FC<BetRowProps> = ({ index, bet, onChange, onRemove, canRemo
           <label className={darkMode ? "form-label text-light" : "form-label"}>Odds</label>
           <input
             type="text"
-            inputMode="decimal"
+            inputMode={bet.format === "american" ? "text" : "decimal"}
+            pattern={bet.format === "american" ? "^-?\\d*$" : undefined}
             className={darkMode ? "form-control bg-dark text-light border-secondary placeholder-white-50" : "form-control"}
             placeholder={bet.format === "decimal" ? "e.g., 1.87" : bet.format === "american" ? "+150 or -120" : "e.g., 5/2"}
             value={bet.odds}
