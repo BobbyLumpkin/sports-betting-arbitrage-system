@@ -1,0 +1,46 @@
+.blog-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* Column outer styling */
+.blog-col {
+    background-color: transparent; /* background is handled by card */
+    padding: 0.5rem;
+}
+
+/* Card base styles */
+.blog-card {
+    background-color: #222;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    border-radius: 8px;
+    height: 100%;
+    box-shadow: 0 7px 28px rgba(0,0,0,0.4);
+    overflow: hidden;
+}
+
+/* Responsive image: smaller on mobile, taller on desktop */
+.blog-img {
+    width: 100%;
+    display: block;
+    object-fit: cover;
+    height: 220px;
+}
+
+/* Let the body size naturally and keep CTA visible */
+.blog-card .card-body {
+    padding: 1rem;
+}
+
+/* Larger screens: taller images and more padding */
+@media (min-width: 768px) {
+    .blog-col {
+        padding: 1.25rem;
+    }
+    .blog-img {
+        height: 450px;
+    }
+}
