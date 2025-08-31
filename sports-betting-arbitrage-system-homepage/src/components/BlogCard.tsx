@@ -27,7 +27,7 @@ function BlogCard() {
                             <div className="card-body d-flex flex-column justify-content-between" style={{ height: "180px" }}>
                                 <h5 className="card-title">Show Me The Code</h5>
                                 <p className="card-text">Hah, Nerd!</p>
-                                <a href="https://www.arbitragecalculatorapp.com" className="btn btn-primary stretched-link">Go</a>
+                                <a href="https://github.com/BobbyLumpkin/sports-betting-arbitrage-system" className="btn btn-primary stretched-link">Go</a>
                             </div>
                         </div>
                     </div>
