@@ -1,6 +1,5 @@
 import BlogCard from "./components/BlogCard";
 import Message from "./components/Message";
-import VigVanquisherLogo from './assets/VigVanquisher_logo.png';
 
 function App() {
   return (
@@ -39,7 +38,7 @@ function App() {
 
           With steadfast resolve and unity, let us claim the spoils that rightfully belong to the bold.<br /><br />
 
-          Godspeed Compatriots!
+          Godspeed Compatriots,<br />
         </div>
       
       <div style={{ height: "4rem" }} />
